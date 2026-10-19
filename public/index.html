@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AETHERIX | Secure Digital Vault</title>
-    <!-- SDK de PayPal de Producción con la URL oficial corregida -->
+    <!-- SDK oficial de PayPal configurado con tu Client ID de Producción -->
     <script src="https://www.paypal.com/sdk/js?client-id=BAA04kgu3t2iSl40-Bep9eKGE4F9YpGLDnqnz-Tk7yqoRJpBvJrYDBx21PbquHbDDbziC-7_zA14rbhVz0&currency=USD"></script>
     <style>
         :root {
@@ -572,6 +572,7 @@
             updateCartUI();
         }
 
+        // Renderizar pasarela oficial con soporte para PayPal y Tarjetas
         paypal.Buttons({
             createOrder: function(data, actions) {
                 let totalAmount = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0).toFixed(2);
