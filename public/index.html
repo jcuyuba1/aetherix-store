@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AETHERIX | Secure Digital Vault</title>
+  <style>
+    :root {
+      --primary: #8b5cf6; --accent: #06b6d4; --bg: #050505;
+      --card-bg: rgba(17, 24, 39, 0.7); --text: #f9fafb; --text-muted: #9ca3af;
+      --border: #1f2937; --success: #10b981; --danger: #ef4444; --star: #fbbf24;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+    body { background-color: var(--bg); color: var(--text); padding-bottom: 4rem; background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px); background-size: 30px 30px; }
+    
+    header { background: rgba(10,10,10,0.85); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.05); padding: 1rem 5%; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 50; }
+    .brand { font-size: 1.6rem; font-weight: 900; background: linear-gradient(135deg, #fff, var(--text-muted)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-decoration: none; }
+    
+    .search-container { flex: 1; max-width: 450px; margin: 0 2rem; position: relative; }
+    .search-input { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--border); padding: 0.6rem 1rem 0.6rem 2.5rem; border-radius: 9999px; color: #fff; font-size: 0.9rem; outline: none; transition: all 0.3s; }
+    .search-input:focus { border-color: var(--primary); box-shadow: 0 0 15px rgba(139,92,246,0.3); background: rgba(0,0,0,0.8); }
+    .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.9rem; }
+
+    .cart-btn-header { background: linear-gradient(135deg, var(--primary), var(--accent)); color: white; border: none; padding: 0.5rem 1.2rem; border-radius: 9999px; font-weight: 700; cursor: pointer; transition: transform 0.2s; white-space: nowrap; }
+    .cart-btn-header:hover { transform: scale(1.05); }
+    
+    .container { max-width: 1200px; margin: 2.5rem auto; padding: 0 1.5rem; }
+    .hero { text-align: center; margin-bottom: 2.5rem; }
+    .hero h1 { font-size: 2.2rem; margin-bottom: 0.5rem; font-weight: 800; }
+    .hero h1 span { background: linear-gradient(135deg, var(--primary), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .hero p { color: var(--text-muted); font-size: 1rem; }
+
+    .filters-bar { display: flex; justify-content: center; gap: 10px; margin-bottom: 2rem; flex-wrap: wrap; }
+    .filter-btn { background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--text-muted); padding: 0.5rem 1.2rem; border-radius: 20px; cursor: pointer; font-weight: 600; font-size: 0.85rem; transition: all 0.2s; }
+    .filter-btn:hover, .filter-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); box-shadow: 0 0 10px rgba(139,92,246,0.4); }
+
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.8rem; }
+    .card { background: var(--card-bg); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 1.5rem; display: flex; flex-direction: column; justify-content: space-between; transition: all 0.3s; }
+    .card:hover { transform: translateY(-4px); border-color: rgba(139,92,246,0.3); box-shadow: 0 10px 30px rgba(0,0,0,0.4); }
+    
+    .app-icon { width: 48px; height: 48px; border-radius: 12px; object-fit: cover; margin-bottom: 0.8rem; border: 1px solid var(--border); background: #000; }
+    .tag { background: rgba(6,182,212,0.1); color: var(--accent); padding: 3px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; }
+    .title { font-size: 1.2rem; margin: 0.5rem 0 0.3rem; font-weight: 700; }
+    .desc { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem; line-height: 1.4; }
+    .rating-badge { display: flex; align-items: center; gap: 5px; font-size: 0.85rem; color: var(--star); margin-bottom: 1rem; cursor: pointer; }
+    
+    .price-container { background: rgba(0,0,0,0.3); padding: 0.8rem; border-radius: 10px; margin-bottom: 1rem; text-align: center; border: 1px dashed var(--border); }
+    .price { font-size: 1.4rem; font-weight: 800; color: #fff; }
+    
+    .btn-add { width: 100%; background: rgba(255,255,255,0.05); color: white; border: 1px solid var(--border); padding: 0.7rem; border-radius: 10px; font-weight: 700; cursor: pointer; transition: 0.2s; font-size: 0.85rem; }
+    .btn-add:hover { background: rgba(255,255,255,0.1); border-color: var(--primary); }
+
+    .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); display: none; z-index: 100; justify-content: flex-end; }
+    .drawer { background: #0f131a; border-left: 1px solid var(--border); width: 100%; max-width: 400px; height: 100%; display: flex; flex-direction: column; }
+    .drawer-header { padding: 1.2rem 1.5rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); background: rgba(0,0,0,0.3); }
+    .close-btn { background: none; border: none; font-size: 1.8rem; cursor: pointer; color: var(--text-muted); }
+    .drawer-body { flex: 1; overflow-y: auto; padding: 1.2rem 1.5rem; }
+    
+    .review-item { background: rgba(255,255,255,0.03); border: 1px solid var(--border); padding: 0.8rem; border-radius: 10px; margin-bottom: 0.8rem; }
+    .review-form { background: rgba(0,0,0,0.3); padding: 1.2rem; border-top: 1px solid var(--border); }
+    .review-form input, .review-form textarea, .review-form select { width: 100%; background: #000; border: 1px solid var(--border); color: #fff; padding: 0.7rem; border-radius: 8px; margin-bottom: 0.8rem; font-size: 0.9rem; }
+    .review-form button { width: 100%; background: var(--primary); color: #fff; border: none; padding: 0.7rem; border-radius: 8px; font-weight: 700; cursor: pointer; }
+    
+    .delivery-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); backdrop-filter: blur(15px); display: none; align-items: center; justify-content: center; z-index: 200; padding: 1rem; }
+    .modal-content { background: var(--card-bg); border: 1px solid rgba(16,185,129,0.3); border-radius: 20px; max-width: 500px; width: 100%; padding: 2.5rem 1.5rem; text-align: center; }
+    .terminal-box { background: #000; border: 1px solid #333; border-radius: 8px; padding: 1rem; margin: 1rem 0; font-family: monospace; color: var(--success); text-align: left; font-size: 0.8rem; }
+    .download-btn { display: inline-block; width: 100%; background: var(--success); color: #000; text-decoration: none; padding: 0.8rem; border-radius: 10px; font-weight: 800; margin-bottom: 8px; }
+  </style>
+  <!-- SDK de PayPal LIVE con tu Client ID oficial de Aetherix Tienda -->
+  <script src="https://www.paypal.com/sdk/js?client-id=BAA04kgu3t2iSl40-Bep9eKGE4F9YpGLDnqnz-Tk7yqoRJpBvJrYDBx21PbquHbDDbziC-7_zA14rbhVz0&currency=USD"></script>
+</head>
+<body>
+
+  <header>
+    <a href="#" class="brand">AETHERIX</a>
+    
+    <div class="search-container">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="searchInput" class="search-input" placeholder="Buscar programas, APK, emuladores..." oninput="filterCatalog()">
+    </div>
+
+    <button class="cart-btn-header" onclick="toggleCart()">🛒 Carrito (<span id="cart-count">0</span>)</button>
+  </header>
+
+  <main class="container">
+    <div class="hero">
+      <h1>Software Profesional <span>Sin Esperas</span></h1>
+      <p>Pasarela de pago encriptada. Archivos liberados automáticamente.</p>
+    </div>
+
+    <div class="filters-bar">
+      <button class="filter-btn active" onclick="setCategory('all', this)">✨ Todos</button>
+      <button class="filter-btn" onclick="setCategory('Programas', this)">💻 Programas</button>
+      <button class="filter-btn" onclick="setCategory('Android APK', this)">📱 Android APK</button>
+      <button class="filter-btn" onclick="setCategory('Emuladores', this)">🎮 Emuladores</button>
+    </div>
+
+    <div class="grid" id="catalog-container"></div>
+  </main>
+
+  <div class="overlay" id="cart-overlay" onclick="closeOnOverlay(event, 'cart-overlay')">
+    <div class="drawer">
+      <div class="drawer-header">
+        <h2>Tu Carrito</h2>
+        <button class="close-btn" onclick="toggleCart()">&times;</button>
+      </div>
+      <div class="drawer-body" id="cart-items"></div>
+      <div class="drawer-header" style="flex-direction: column; gap:10px;">
+        <div style="width:100%; display:flex; justify-content:space-between; font-size:1.2rem; font-weight:800;">
+          <span>Total:</span> <span id="cart-total-price">$0.00</span>
+        </div>
+        <div id="paypal-button-container" style="width: 100%; min-height: 45px; display:none;"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay" id="reviews-overlay" onclick="closeOnOverlay(event, 'reviews-overlay')">
+    <div class="drawer">
+      <div class="drawer-header">
+        <h2 id="review-product-name" style="font-size: 1.1rem;">Reseñas</h2>
+        <button class="close-btn" onclick="toggleReviews()">&times;</button>
+      </div>
+      <div class="drawer-body" id="reviews-list"></div>
+      <div class="review-form">
+        <h3 style="margin-bottom:8px; font-size:1rem;">Dejar una reseña</h3>
+        <input type="hidden" id="rev-product-id">
+        <input type="text" id="rev-name" placeholder="Tu Nombre" required>
+        <select id="rev-rating">
+          <option value="5">⭐⭐⭐⭐⭐ Excelente</option>
+          <option value="4">⭐⭐⭐⭐ Muy bueno</option>
+          <option value="3">⭐⭐⭐ Normal</option>
+          <option value="2">⭐⭐ Malo</option>
+          <option value="1">⭐ Pésimo</option>
+        </select>
+        <textarea id="rev-comment" placeholder="¿Qué te pareció el producto?" rows="2" required></textarea>
+        <button onclick="submitReview()">Publicar Reseña</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="delivery-modal" id="delivery-modal">
+    <div class="modal-content">
+      <div style="font-size: 3rem; margin-bottom: 0.5rem;">✅</div>
+      <h2 style="color:#fff; font-size:1.5rem;">Transacción Aprobada</h2>
+      <div class="terminal-box">
+        > Comprador validado: <span id="buyer-email" style="color:#fff;"></span><br>
+        > Enlaces temporales listos abajo.
+      </div>
+      <div id="downloads-container"></div>
+      <button onclick="closeSuccessModal()" style="background:none; border:none; color:var(--text-muted); cursor:pointer; text-decoration:underline; margin-top:0.8rem;">Cerrar ventana</button>
+    </div>
+  </div>
+
+  <script>
+    let products = [];
+    let cart = [];
+    let currentCategory = 'all';
+    let paypalRendered = false;
+
+    async function fetchCatalog() {
+      try {
+        const res = await fetch('/api/products');
+        products = await res.json();
+        filterCatalog();
+      } catch (err) {
+        document.getElementById('catalog-container').innerHTML = '<p style="color:red; text-align:center; width:100%;">Error conectando al servidor.</p>';
+      }
+    }
+
+    async function filterCatalog() {
+      const container = document.getElementById('catalog-container');
+      const query = document.getElementById('searchInput').value.toLowerCase();
+      
+      const filtered = products.filter(p => {
+        const itemTag = (p.tag || '').trim().toLowerCase();
+        const selectedTag = currentCategory.trim().toLowerCase();
+        
+        const matchesCategory = (currentCategory === 'all' || itemTag === selectedTag);
+        const matchesSearch = p.title.toLowerCase().includes(query) || p.desc.toLowerCase().includes(query);
+        return matchesCategory && matchesSearch;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = '<p style="color:var(--text-muted); text-align:center; width:100%; grid-column:1/-1; padding:2rem;">No se encontraron aplicaciones o programas.</p>';
+        return;
+      }
+
+      container.innerHTML = '';
+      for (let p of filtered) {
+        let average = "0.0"; let count = 0;
+        try {
+          const revRes = await fetch(`/api/reviews/${p.id}`);
+          if (revRes.ok) {
+            const data = await revRes.json();
+            average = data.average; count = data.count;
+          }
+        } catch(e) {}
+        
+        const imgSrc = (p.image && p.image !== 'default') ? `/images/${p.image}` : 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=100&q=80';
+
+        container.innerHTML += `
+          <div class="card">
+            <div>
+              <img src="${imgSrc}" alt="${p.title}" class="app-icon">
+              <span class="tag">${p.tag || 'General'}</span>
+              <h2 class="title">${p.title}</h2>
+              <div class="rating-badge" onclick="openReviews('${p.id}', '${p.title.replace(/'/g, "\\'")}')">
+                ⭐ ${average} (${count} reseñas) ➔
+              </div>
+              <p class="desc">${p.desc}</p>
+            </div>
+            <div>
+              <div class="price-container">
+                <div class="price">$${Number(p.price).toFixed(2)} USD</div>
+              </div>
+              <button class="btn-add" onclick="addToCart('${p.id}')">Agregar al Carrito</button>
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    function setCategory(category, btn) {
+      currentCategory = category;
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      filterCatalog();
+    }
+
+    async function openReviews(id, title) {
+      document.getElementById('review-product-name').textContent = "Reseñas: " + title;
+      document.getElementById('rev-product-id').value = id;
+      const list = document.getElementById('reviews-list');
+      list.innerHTML = '<p style="color:gray;">Cargando opiniones...</p>';
+      document.getElementById('reviews-overlay').style.display = 'flex';
+
+      const res = await fetch(`/api/reviews/${id}`);
+      const data = await res.json();
+      if(data.reviews.length === 0) list.innerHTML = '<p style="color:gray;">Aún no hay reseñas.</p>';
+      else list.innerHTML = data.reviews.map(r => `
+          <div class="review-item">
+            <div style="display:flex; justify-content:space-between; margin-bottom:0.2rem;"><strong style="color:#fff; font-size:0.9rem;">${r.name}</strong><span style="font-size:0.75rem; color:gray;">${r.date}</span></div>
+            <div style="color:var(--star); margin-bottom:0.2rem; font-size:0.8rem;">${'⭐'.repeat(r.rating)}</div>
+            <p style="font-size:0.85rem; color:var(--text-muted);">"${r.comment}"</p>
+          </div>`).join('');
+    }
+
+    async function submitReview() {
+      const productId = document.getElementById('rev-product-id').value;
+      const name = document.getElementById('rev-name').value;
+      const rating = document.getElementById('rev-rating').value;
+      const comment = document.getElementById('rev-comment').value;
+
+      if(!name || !comment) return alert("Completa los campos.");
+      await fetch('/api/reviews', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ productId, name, rating, comment }) });
+      document.getElementById('rev-name').value = ''; document.getElementById('rev-comment').value = '';
+      openReviews(productId, document.getElementById('review-product-name').textContent.replace('Reseñas: ', ''));
+      fetchCatalog();
+    }
+
+    function toggleReviews() { document.getElementById('reviews-overlay').style.display = 'none'; }
+
+    function addToCart(productId) {
+      const product = products.find(p => p.id === productId);
+      const existing = cart.find(item => item.id === productId);
+      if(existing) existing.quantity += 1; else cart.push({ ...product, quantity: 1 });
+      updateCartUI(); toggleCart(true);
+    }
+
+    function removeFromCart(productId) { cart = cart.filter(item => item.id !== productId); updateCartUI(); }
+
+    function updateCartUI() {
+      const itemsContainer = document.getElementById('cart-items');
+      const paypalWrapper = document.getElementById('paypal-button-container');
+      document.getElementById('cart-count').textContent = cart.reduce((acc, item) => acc + item.quantity, 0);
+
+      if (cart.length === 0) {
+        itemsContainer.innerHTML = '<p style="color:gray;text-align:center;margin-top:2rem;">Carrito vacío.</p>';
+        document.getElementById('cart-total-price').textContent = '$0.00';
+        paypalWrapper.style.display = 'none';
+        return;
+      }
+
+      paypalWrapper.style.display = 'block';
+      let total = 0;
+      itemsContainer.innerHTML = cart.map(item => {
+        total += item.price * item.quantity;
+        return `<div style="background:rgba(255,255,255,0.05); padding:0.8rem; border-radius:8px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
+            <div><h4 style="font-size:0.9rem;">${item.title}</h4><p style="color:var(--accent); font-weight:700; font-size:0.8rem;">${item.quantity} x $${Number(item.price).toFixed(2)}</p></div>
+            <button onclick="removeFromCart('${item.id}')" style="background:var(--danger); color:#fff; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; font-size:0.8rem;">X</button>
+          </div>`;
+      }).join('');
+      document.getElementById('cart-total-price').textContent = `$${total.toFixed(2)}`;
+
+      if(!paypalRendered) {
+        renderPayPalButton();
+        paypalRendered = true;
+      }
+    }
+
+    function toggleCart(forceOpen = false) { 
+      const overlay = document.getElementById('cart-overlay'); 
+      overlay.style.display = forceOpen ? 'flex' : (overlay.style.display === 'flex' ? 'none' : 'flex'); 
+    }
+    
+    function closeOnOverlay(event, id) { if (event.target.id === id) document.getElementById(id).style.display = 'none'; }
+    function closeSuccessModal() { document.getElementById('delivery-modal').style.display = 'none'; cart = []; updateCartUI(); }
+
+    function renderPayPalButton() {
+      paypal.Buttons({
+        style: { layout: 'vertical', color: 'gold', shape: 'rect', label: 'checkout' },
+        createOrder: function() {
+          return fetch('/api/orders/create', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ cart: cart }) })
+          .then(res => res.json()).then(order => order.id);
+        },
+        onApprove: function(data) {
+          return fetch('/api/orders/capture', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ orderId: data.orderID }) })
+          .then(res => res.json()).then(result => {
+            if (result.success) {
+              toggleCart(); 
+              document.getElementById('buyer-email').textContent = result.buyerEmail;
+              document.getElementById('downloads-container').innerHTML = result.downloads.map(file => `<a href="${file.url}" class="download-btn" download>⬇️ Descargar ${file.name}</a>`).join('');
+              document.getElementById('delivery-modal').style.display = 'flex';
+            } else alert('Error verificando pago.');
+          });
+        }
+      }).render("#paypal-button-container");
+    }
+
+    fetchCatalog();
+  </script>
+</body>
+</html>

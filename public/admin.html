@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>AETHERIX | Admin Dashboard</title>
+  <style>
+    :root { --primary: #8b5cf6; --accent: #06b6d4; --bg: #050505; --card-bg: rgba(17, 24, 39, 0.7); --text: #f9fafb; --border: #1f2937; --success: #10b981; --danger: #ef4444; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+    body { background-color: var(--bg); color: var(--text); padding: 3rem 2rem; background-image: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px); background-size: 30px 30px; }
+    .dashboard-container { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; max-width: 1200px; margin: 0 auto; align-items: start; }
+    @media(max-width: 800px) { .dashboard-container { grid-template-columns: 1fr; } }
+    .admin-card { background: var(--card-bg); backdrop-filter: blur(10px); border: 1px solid var(--primary); border-radius: 20px; padding: 2rem; box-shadow: 0 0 30px rgba(139, 92, 246, 0.2); }
+    h2 { margin-bottom: 0.5rem; text-align: center; }
+    p { color: gray; margin-bottom: 1.5rem; font-size: 0.9rem; text-align: center; }
+    input, textarea { width: 100%; background: #000; color: #fff; border: 1px solid var(--border); padding: 1rem; border-radius: 10px; margin-bottom: 1rem; }
+    .file-box { background: rgba(0,0,0,0.5); padding: 10px; border-radius: 8px; margin-bottom: 15px; border: 1px dashed var(--border); }
+    .file-box label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 0.9rem; color: var(--accent); }
+    input[type="file"]::file-selector-button { background: rgba(255,255,255,0.1); color: white; border: none; padding: 0.5rem 1rem; border-radius: 5px; cursor: pointer; margin-right: 15px; }
+    .btn-upload { width: 100%; background: linear-gradient(135deg, var(--primary), var(--accent)); color: white; border: none; padding: 1rem; border-radius: 10px; font-weight: 700; cursor: pointer; margin-top: 1rem; transition: transform 0.2s; }
+    .btn-upload:hover { transform: scale(1.02); }
+    .btn-cancel { width: 100%; background: transparent; color: gray; border: 1px solid var(--border); padding: 1rem; border-radius: 10px; font-weight: 700; cursor: pointer; margin-top: 0.5rem; display: none; }
+    #status { margin-top: 1rem; font-weight: bold; text-align: center; }
+    .catalog-list { margin-top: 1rem; display: flex; flex-direction: column; gap: 1rem; }
+    .catalog-item { background: rgba(0,0,0,0.5); border: 1px solid var(--border); padding: 1rem; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; }
+    .item-info h4 { font-size: 1.1rem; color: #fff; margin-bottom: 0.3rem; }
+    .item-info p { color: var(--accent); font-weight: bold; font-size: 0.9rem; margin: 0; }
+    .action-btns button { padding: 0.5rem 1rem; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; margin-left: 0.5rem; transition: opacity 0.2s;}
+    .action-btns button:hover { opacity: 0.8; }
+    .btn-edit { background: var(--primary); color: #fff; }
+    .btn-delete { background: rgba(239, 68, 68, 0.2); border: 1px solid var(--danger); color: var(--danger); }
+  </style>
+</head>
+<body>
+
+  <div class="dashboard-container">
+    <div class="admin-card">
+      <h2 id="form-title">Editar Aplicación</h2>
+      <p id="form-subtitle">Llena los datos para subirla a la tienda en vivo.</p>
+      
+      <form id="uploadForm">
+        <input type="password" id="adminPass" placeholder="🔑 Contraseña Maestra" required>
+        <hr style="border:0; border-top:1px solid var(--border); margin: 1.5rem 0;">
+        
+        <input type="text" id="appTitle" placeholder="Nombre de la App" required>
+        <input type="text" id="appTag" placeholder="Categoría (Ej: Android APK)" required>
+        <textarea id="appDesc" placeholder="Descripción llamativa" rows="3" required></textarea>
+        <input type="number" id="appPrice" placeholder="Precio en USD" step="0.01" required>
+        
+        <div class="file-box">
+          <label>📸 Foto / Portada (.jpg, .png):</label>
+          <input type="file" id="imageInput" accept="image/*">
+        </div>
+
+        <div class="file-box">
+          <label>📦 Archivo (.apk, .zip, .exe):</label>
+          <input type="file" id="fileInput" accept=".apk,.zip,.rar,.exe">
+        </div>
+        
+        <button type="submit" class="btn-upload" id="submitBtn">Guardar Cambios</button>
+        <button type="button" class="btn-cancel" id="cancelBtn" onclick="resetForm()">Cancelar Edición</button>
+      </form>
+      <div id="status"></div>
+    </div>
+
+    <div class="admin-card">
+      <h2>Catálogo Actual</h2>
+      <div class="catalog-list" id="admin-catalog"></div>
+    </div>
+  </div>
+
+  <script>
+    let isEditing = false;
+    let currentEditId = null;
+    let catalog = [];
+
+    async function loadAdminCatalog() {
+      const res = await fetch('/api/products');
+      catalog = await res.json();
+      const container = document.getElementById('admin-catalog');
+      container.innerHTML = catalog.map(p => `
+        <div class="catalog-item">
+          <div class="item-info">
+            <h4>${p.title}</h4><p>$${p.price.toFixed(2)} USD</p>
+          </div>
+          <div class="action-btns">
+            <button class="btn-edit" onclick="editProduct('${p.id}')">Editar</button>
+            <button class="btn-delete" onclick="deleteProduct('${p.id}')">X</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function editProduct(id) {
+      const p = catalog.find(x => x.id === id);
+      if(!p) return;
+      isEditing = true; currentEditId = id;
+      document.getElementById('form-title').textContent = "Editar Aplicación";
+      document.getElementById('submitBtn').textContent = "Guardar Cambios";
+      document.getElementById('cancelBtn').style.display = "block";
+      
+      document.getElementById('appTitle').value = p.title;
+      document.getElementById('appTag').value = p.tag;
+      document.getElementById('appDesc').value = p.desc;
+      document.getElementById('appPrice').value = p.price;
+    }
+
+    function resetForm() {
+      isEditing = false; currentEditId = null;
+      document.getElementById('form-title').textContent = "Publicar Nueva App";
+      document.getElementById('submitBtn').textContent = "Subir y Publicar";
+      document.getElementById('cancelBtn').style.display = "none";
+      const pass = document.getElementById('adminPass').value;
+      document.getElementById('uploadForm').reset();
+      document.getElementById('adminPass').value = pass;
+    }
+
+    document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData();
+      formData.append('adminPassword', document.getElementById('adminPass').value);
+      formData.append('title', document.getElementById('appTitle').value);
+      formData.append('tag', document.getElementById('appTag').value);
+      formData.append('desc', document.getElementById('appDesc').value);
+      formData.append('price', document.getElementById('appPrice').value);
+      
+      const imageFile = document.getElementById('imageInput').files[0];
+      const appFile = document.getElementById('fileInput').files[0];
+
+      if(imageFile) formData.append('appImage', imageFile);
+      if(appFile) formData.append('appFile', appFile);
+
+      const statusDiv = document.getElementById('status');
+      statusDiv.style.color = "white"; statusDiv.textContent = "Guardando archivos..."; 
+      
+      try {
+        const res = await fetch(isEditing ? `/api/admin/edit/${currentEditId}` : '/api/admin/upload', {
+          method: isEditing ? 'PUT' : 'POST', 
+          body: formData 
+        });
+        const result = await res.json();
+        
+        if (res.ok) {
+          statusDiv.style.color = "#10b981"; statusDiv.textContent = result.message;
+          resetForm(); loadAdminCatalog();
+        } else {
+          statusDiv.style.color = "#ef4444"; statusDiv.textContent = "❌ " + result.error;
+        }
+      } catch (err) {
+        statusDiv.style.color = "#ef4444"; statusDiv.textContent = "❌ Error de conexión al enviar archivos.";
+      }
+      setTimeout(() => statusDiv.textContent = "", 4000);
+    });
+
+    async function deleteProduct(id) {
+      if(!confirm("¿Deseas eliminar esta aplicación?")) return;
+      await fetch(`/api/admin/delete/${id}`, {
+        method: 'DELETE', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ adminPassword: document.getElementById('adminPass').value })
+      });
+      loadAdminCatalog();
+    }
+
+    loadAdminCatalog();
+  </script>
+</body>
+</html>
