@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AETHERIX | Secure Digital Vault</title>
-    <!-- SDK de PayPal configurado con tu Client ID de Producción Real -->
+    <!-- SDK de PayPal con tu Client ID de Producción Real -->
     <script src="https://www.paypal.com/sdk/js?client-id=BAA04kgu3t2iSl40-Bep9eKGE4F9YpGLDnqnz-Tk7yqoRJpBvJrYDBx21PbquHbDDbziC-7_zA14rbhVz0&currency=USD"></script>
     <style>
         :root {
@@ -472,16 +472,20 @@
             }
 
             items.forEach(p => {
+                // Validación para asegurar que si no hay imagen válida, cargue una por defecto y evite mostrar "undefined"
+                let imgSrc = p.image;
+                if (!imgSrc || imgSrc === 'undefined' || imgSrc.trim() === '') {
+                    imgSrc = 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=300';
+                }
+
                 const card = document.createElement('div');
                 card.className = 'product-card';
                 card.innerHTML = `
-                    <img src="${p.image || 'https://via.placeholder.com/300x160?text=Aetherix'}" class="product-img" alt="${p.title}">
+                    <img src="${imgSrc}" class="product-img" alt="${p.title}">
                     <div class="product-info">
-                        <span class="product-category">${p.category}</span>
+                        <span class="product-category">${p.category || 'Digital'}</span>
                         <h3 class="product-title">${p.title}</h3>
-                        <p class="product-desc">${p.description}</p>
-                        <div class="product-footer">
-                            <span class="product-price">$${parseFloat(p.price).toFixed(2)} USD</span>
+                        <p class="product-desc">${p.description \vert{}\vert{} ''}</p> <div class="product-footer"> <span class="product-price">$${parseFloat(p.price || 0).toFixed(2)} USD</span>
                             <button class="btn-primary" onclick="addToCart('${p.id}')">Agregar</button>
                         </div>
                     </div>
@@ -497,7 +501,7 @@
             if (category === 'all') {
                 renderProducts(products);
             } else {
-                const filtered = products.filter(p => p.category.toLowerCase() === category.toLowerCase());
+                const filtered = products.filter(p => p.category && p.category.toLowerCase() === category.toLowerCase());
                 renderProducts(filtered);
             }
         }
@@ -547,59 +551,4 @@
                 const div = document.createElement('div');
                 div.className = 'cart-item';
                 div.innerHTML = `
-                    <div class="cart-item-info">
-                        <h4>${item.title}</h4>
-                        <span>${item.quantity} x $${parseFloat(item.price).toFixed(2)}</span>
-                    </div>
-                    <button class="remove-item" onclick="removeFromCart('${item.id}')">×</button>
-                `;
-                container.appendChild(div);
-            });
-
-            countElem.innerText = totalCount;
-            totalElem.innerText = `$${total.toFixed(2)} USD`;
-        }
-
-        function closeDownloadModal() {
-            document.getElementById('downloadModal').classList.remove('open');
-            document.getElementById('overlay').classList.remove('open');
-            cart = [];
-            updateCartUI();
-        }
-
-        // Renderizar pasarela de PayPal
-        paypal.Buttons({
-            createOrder: async function(data, actions) {
-                const response = await fetch('/api/orders/create', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ cart })
-                });
-                const order = await response.json();
-                return order.id;
-            },
-            onApprove: async function(data, actions) {
-                const response = await fetch('/api/orders/capture', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ orderID: data.orderID })
-                });
-                const result = await response.json();
-                if (result.success) {
-                    toggleCart(); // Cerrar carrito
-                    const linksContainer = document.getElementById('downloadLinksContainer');
-                    linksContainer.innerHTML = '';
-                    result.downloads.forEach(d => {
-                        linksContainer.innerHTML += `<a href="${d.url}" class="download-link-btn" target="_blank">📥 Descargar: ${d.name}</a>`;
-                    });
-                    document.getElementById('downloadModal').classList.add('open');
-                    document.getElementById('overlay').classList.add('open');
-                }
-            }
-        }).render('#paypal-button-container');
-
-        // Inicializar carga de productos al abrir
-        fetchProducts();
-    </script>
-</body>
-</html>
+                    <div
