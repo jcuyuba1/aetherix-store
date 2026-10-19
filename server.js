@@ -105,8 +105,8 @@ app.get('/download/:id', (req, res) => {
   res.status(404).send('Archivo no encontrado o enlace expirado.');
 });
 
-// Ruta comodín para asegurar que cualquier otra ruta cargue el index de la tienda
-app.get('*', (req, res) => {
+// Ruta comodín compatible con Express moderno (Evita el error de path-to-regexp)
+app.get(/^\/.*/, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
