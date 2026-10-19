@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AETHERIX | Secure Digital Vault</title>
-    <!-- SDK oficial de PayPal configurado con tu Client ID de Producción -->
+    <!-- SDK oficial de PayPal en Modo Live con tu Client ID de Producción -->
     <script src="https://www.paypal.com/sdk/js?client-id=BAA04kgu3t2iSl40-Bep9eKGE4F9YpGLDnqnz-Tk7yqoRJpBvJrYDBx21PbquHbDDbziC-7_zA14rbhVz0&currency=USD"></script>
     <style>
         :root {
@@ -472,9 +472,12 @@
             }
 
             items.forEach(p => {
+                // Compatible con la propiedad "image" de tu base de datos original (vault_files o imágenes directas)
                 let imgSrc = p.image;
                 if (!imgSrc || imgSrc === 'undefined' || imgSrc.trim() === '') {
                     imgSrc = 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=300';
+                } else if (!imgSrc.startsWith('http') && !imgSrc.startsWith('/')) {
+                    imgSrc = '/' + imgSrc; 
                 }
 
                 const card = document.createElement('div');
@@ -482,9 +485,9 @@
                 card.innerHTML = `
                     <img src="${imgSrc}" class="product-img" alt="${p.title}">
                     <div class="product-info">
-                        <span class="product-category">${p.category || 'Digital'}</span>
+                        <span class="product-category">${p.tag || 'Digital'}</span>
                         <h3 class="product-title">${p.title}</h3>
-                        <p class="product-desc">${p.description || ''}</p>
+                        <p class="product-desc">${p.desc || ''}</p>
                         <div class="product-footer">
                             <span class="product-price">$${parseFloat(p.price || 0).toFixed(2)} USD</span>
                             <button class="btn-primary" onclick="addToCart('${p.id}')">Agregar</button>
@@ -502,14 +505,14 @@
             if (category === 'all') {
                 renderProducts(products);
             } else {
-                const filtered = products.filter(p => p.category && p.category.toLowerCase() === category.toLowerCase());
+                const filtered = products.filter(p => p.tag && p.tag.toLowerCase() === category.toLowerCase());
                 renderProducts(filtered);
             }
         }
 
         document.getElementById('searchInput').addEventListener('input', (e) => {
             const term = e.target.value.toLowerCase();
-            const filtered = products.filter(p => p.title.toLowerCase().includes(term) || p.description.toLowerCase().includes(term));
+            const filtered = products.filter(p => p.title.toLowerCase().includes(term) || (p.desc && p.desc.toLowerCase().includes(term)));
             renderProducts(filtered);
         });
 
@@ -572,7 +575,7 @@
             updateCartUI();
         }
 
-        // Renderizar pasarela oficial con soporte para PayPal y Tarjetas
+        // Pasarela de PayPal para cobros reales con el total exacto del carrito
         paypal.Buttons({
             createOrder: function(data, actions) {
                 let totalAmount = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0).toFixed(2);
