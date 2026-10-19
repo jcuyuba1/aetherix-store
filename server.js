@@ -1,11 +1,11 @@
 const express = require('express');
 const fs = require('fs');
-const path = path = require('path');
+const path = require('path');
 const multer = require('multer');
 
 const app = express();
 
-// 1. Configuración esencial para servir la carpeta public y procesar JSON
+// Configuración esencial para servir la carpeta public y procesar JSON
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 
@@ -110,8 +110,8 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// 2. Puerto dinámico obligatorio para Render (con fallback a 3000 para local)
+// Puerto dinámico obligatorio para Render
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Servidor activo en el puerto ${PORT}`);
+  console.log(`Servidor corriendo correctamente en el puerto ${PORT}`);
 });
