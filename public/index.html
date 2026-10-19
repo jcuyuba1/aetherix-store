@@ -66,7 +66,7 @@
     .terminal-box { background: #000; border: 1px solid #333; border-radius: 8px; padding: 1rem; margin: 1rem 0; font-family: monospace; color: var(--success); text-align: left; font-size: 0.8rem; }
     .download-btn { display: inline-block; width: 100%; background: var(--success); color: #000; text-decoration: none; padding: 0.8rem; border-radius: 10px; font-weight: 800; margin-bottom: 8px; }
   </style>
-  <!-- SDK de PayPal LIVE con tu Client ID oficial de Aetherix Tienda -->
+  <!-- SDK oficial de PayPal en Modo Live con tu Client ID correcto -->
   <script src="https://www.paypal.com/sdk/js?client-id=BAA04kgu3t2iSl40-Bep9eKGE4F9YpGLDnqnz-Tk7yqoRJpBvJrYDBx21PbquHbDDbziC-7_zA14rbhVz0&currency=USD"></script>
 </head>
 <body>
@@ -196,7 +196,6 @@
           }
         } catch(e) {}
         
-        // CORRECCIÓN AQUÍ: Apunta correctamente a la carpeta /images/ dentro de public
         const imgSrc = (p.image && p.image !== 'default') ? `/images/${p.image}` : 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=100&q=80';
 
         container.innerHTML += `
@@ -320,7 +319,7 @@
             if (result.success) {
               toggleCart(); 
               document.getElementById('buyer-email').textContent = result.buyerEmail;
-              document.getElementById('downloads-container').innerHTML = result.downloads.map(file => `<a href="${file.url}" class="download-link-btn" style="display:inline-block; width:100%; background:var(--success); color:#000; text-decoration:none; padding:0.8rem; border-radius:10px; font-weight:800; margin-bottom:8px;" download>⬇️ Descargar ${file.name}</a>`).join('');
+              document.getElementById('downloads-container').innerHTML = result.downloads.map(file => `<a href="${file.url}" class="download-btn" download>⬇️ Descargar ${file.name}</a>`).join('');
               document.getElementById('delivery-modal').style.display = 'flex';
             } else alert('Error verificando pago.');
           });
