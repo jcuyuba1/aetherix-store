@@ -472,8 +472,8 @@
             }
 
             items.forEach(p => {
-                // Compatible con la propiedad "image" de tu base de datos original (vault_files o imágenes directas)
                 let imgSrc = p.image;
+                // Si la imagen es el nombre del archivo local que subiste, lo busca directamente en la raíz
                 if (!imgSrc || imgSrc === 'undefined' || imgSrc.trim() === '') {
                     imgSrc = 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=300';
                 } else if (!imgSrc.startsWith('http') && !imgSrc.startsWith('/')) {
@@ -575,7 +575,7 @@
             updateCartUI();
         }
 
-        // Pasarela de PayPal para cobros reales con el total exacto del carrito
+        // Pasarela de PayPal oficial conectada a tu cuenta de producción
         paypal.Buttons({
             createOrder: function(data, actions) {
                 let totalAmount = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0).toFixed(2);
