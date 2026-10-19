@@ -1,6 +1,6 @@
 const express = require('express');
 const fs = require('fs');
-const path = require('path');
+const path = path = require('path');
 const multer = require('multer');
 
 const app = express();
@@ -80,7 +80,6 @@ app.post('/api/orders/create', (req, res) => {
 
 app.post('/api/orders/capture', (req, res) => {
   const products = getProducts();
-  // Devuelve los archivos descargables de ejemplo basados en los productos actuales
   const downloads = products.slice(0, 2).map(p => ({
     name: p.title,
     url: `/download/${p.id}`
@@ -114,5 +113,5 @@ app.get('*', (req, res) => {
 // 2. Puerto dinámico obligatorio para Render (con fallback a 3000 para local)
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Servidor activo y puerto dinámico en ${PORT}`);
+  console.log(`Servidor activo en el puerto ${PORT}`);
 });
